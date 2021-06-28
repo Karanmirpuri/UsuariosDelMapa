@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UsuariosDelMapa</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+    <link rel="stylesheet" href="css/app.css">
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+        integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+        crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <h1>Numero de usuarios: {{usuarios.length}}</h1>
+        <button v-on:click="verTabla=!verTabla">Ver/Ocultar tabla</button>
+        <table v-if="verTabla">
+            <thead>
+                <tr>
+                    <th @click="ordenar('name')">Nombre</th>
+                    <th @click="ordenar('phone')">Telefono</th>
+                    <th @click="ordenar('company')">Empresa</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="u in filtrar" @click="seleccionar(u)">
+                    <td>{{u.name}}</td>
+                    <td>{{u.phone}}</td>
+                    <td>{{u.company.name}}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><input type="text" v-model="filtroNombre"></td>
+                    <td><input type="text" v-model="filtroTelefono"></td>
+                    <td><input type="text" v-model="filtroEmpresa"></td>
+                </tr>
+            </tfoot>
+        </table>
+        <h4>Usuario</h4>
+        <input type="text" v-model="nombreCreado">
+        <input type="text" v-model="telefonoCreado">
+        <select v-model="empresaCreada">
+            <option>Las Galletas</option>
+            <option v-for="u in usuarios">{{u.company.name}}</option>
+        </select>
+        <button @click="crear">Crear</button>
+        <h1>Usuarios seleccionados: {{usuariosSeleccionados.length}}</h1>
+        <div v-if="usuariosSeleccionados.length">
+            <h1>Mapa</h1>
+            <mapa v-bind:usuario="usuarioMostrar">
+            </mapa>
+            <usuario v-for="u in usuariosSeleccionados"
+                    v-bind:user="u"
+                    v-on:borrar="borrarUsuario"
+                    v-on:mostrar="mostrarUsuario">
+
+            </usuario>
+        </div>
+    </div>
+    <script src="components/mapa.js"></script>
+    <script src="components/usuario.js"></script>
+    <script>
+        const app = new Vue({
+            el: "#app",
+            data: {
+                verTabla: true,
+                usuarios: [],
+                filtroNombre: "",
+                filtroTelefono: "",
+                filtroEmpresa: "",
+                nombreCreado: "",
+                telefonoCreado: "",
+                empresaCreada: "",
+                usuariosSeleccionados: [],
+                usuarioMostrar:null
+            },
+            methods: {
+                ordenar(criterio) {
+                    if (criterio == "company") {
+                        this.usuarios.sort((a, b) => a.company.name < b.company.name ? -1 : 1);
+                    } else {
+                        this.usuarios.sort((a, b) => a[criterio] < b[criterio] ? -1 : 1);
+                    }
+                },
+                crear() {
+                    this.usuarios.push({
+                        "id": Math.max(...this.usuarios.map(u => u.id)) + 1,
+                        "name": this.nombreCreado,
+                        "address": {
+                            "geo": {
+                                "lat": "28.015",
+                                "lng": "-16.654"
+                            }
+                        },
+                        "phone": this.telefonoCreado,
+                        "company": {
+                            "name": this.empresaCreada,
+                        }
+                    });
+                },
+                seleccionar(u) {
+                    if (!this.usuariosSeleccionados.includes(u)) {
+                        this.usuariosSeleccionados.push(u);
+                    }
+                },
+                borrarUsuario(u){
+                    let indice=this.usuariosSeleccionados.indexOf(u);
+                    this.usuariosSeleccionados.splice(indice,1);
+                },
+                mostrarUsuario(u){
+                    this.usuarioMostrar=u;
+                }
+            },
+            mounted() {
+                fetch("https://jsonplaceholder.typicode.com/users")
+                    .then(res => res.json())
+                    .then(resultados => this.usuarios = resultados);
+            },
+            computed: {
+                filtrar() {
+                    return this.usuarios.filter(u => u.name.includes(this.filtroNombre) &&
+                        u.phone.includes(this.filtroTelefono) &&
+                        u.company.name.includes(this.filtroEmpresa));
+                }
+            }
+
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+#mapid {
+  height: 500px;
+  width: 500px;
+  float: left;
+}
+
+h1,h2 { text-align: center;}
+
+table {
+  border-collapse: collapse;
+  margin: 3px auto;
+}
+
+td, th {
+  border: 1px solid grey;
+  padding: 4px 8px;
+  text-align: center;
+}
+
+tr:hover {
+  background-color: yellow;
+}
+
+.usuario {
+  border: 1px solid grey;
+  width: 200px;
+  float: left;
+  padding: 5px;
+  margin: 10px;
+  box-shadow: 5px 5px 5px silver;
+  font-size: 0.7em;
+}
